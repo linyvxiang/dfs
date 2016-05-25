@@ -1,0 +1,93 @@
+import "status_code.proto";
+import "file.proto";
+
+package baidu.bfs;
+
+option cc_generic_services = true;
+
+message BlockMappingGetLocatedBlockRequest {
+    optional int64 block_id = 1;
+}
+
+message BlockMappingGetLocatedBlockResponse {
+    optional StatusCode status = 1;
+    repeated int32 replica = 2;
+    optional int64 block_size = 3;
+}
+
+message BlockMappingChangeReplicaNumRequest {
+    optional int64 block_id = 1;
+    optional int32 replica_num = 2;
+}
+
+message BlockMappingChangeReplicaNumResponse {
+    optional StatusCode status = 1;
+}
+
+message BlockMappingAddNewBlockRequest {
+    optional int64 block_id = 1;
+    optional int32 replica = 2;
+    optional int64 block_version = 3;
+    optional int64 block_size = 4;
+    optional int32 init_replicas = 5;
+}
+
+message BlockMappingAddNewBlockResponse {
+    optional StatusCode status = 1;
+}
+
+message BlockMappingUpdateBlockInfoRequest {
+    optional int64 block_id = 1;
+    optional int32 cs_id = 2;
+    optional int64 block_size = 3;
+    optional int64 block_version = 4;
+}
+
+message BlockMappingUpdateBlockInfoResponse {
+    optional StatusCode status = 1;
+}
+
+message BlockMappingRemoveBlocksForFileRequest {
+    optional FileInfo fileinfo = 1;
+}
+
+message BlockMappingRemoveBlocksForFileResponse {
+    optional StatusCode status = 1;
+}
+
+message BlockMappingRemoveBlockRequest {
+    optional int64 block_id = 1;
+}
+
+message BlockMappingRemoveBlockResponse {
+    optional StatusCode status = 1;
+}
+
+message BlockMappingDealWithDeadNodeRequest {
+    optional int32 cs_id = 1;
+    repeated int64 blocks = 2;
+}
+
+message BlockMappingDealWithDeadNodeResponse {
+    optional StatusCode status = 1;
+}
+
+message BlockMappingCheckBlockVersionRequest {
+    optional int64 block_id = 1;
+    optional int64 block_version = 2;
+}
+
+message BlockMappingCheckBlockVersionResponse {
+    optional StatusCode status = 1;
+}
+
+service BlockMappingManager {
+    rpc GetLocatedBlock(BlockMappingGetLocatedBlockRequest) returns(BlockMappingGetLocatedBlockResponse);
+    rpc ChangeReplicaNum(BlockMappingChangeReplicaNumRequest) returns(BlockMappingChangeReplicaNumResponse);
+    rpc AddNewBlock(BlockMappingAddNewBlockRequest) returns(BlockMappingAddNewBlockResponse);
+    rpc UpdateBlockInfo(BlockMappingUpdateBlockInfoRequest) returns(BlockMappingUpdateBlockInfoResponse);
+    rpc RemoveBlocksForFile(BlockMappingRemoveBlocksForFileRequest) returns(BlockMappingRemoveBlocksForFileResponse);
+    rpc RemoveBlock(BlockMappingRemoveBlockRequest) returns(BlockMappingRemoveBlockResponse);
+    rpc DealWithDeadNode(BlockMappingDealWithDeadNodeRequest) returns(BlockMappingDealWithDeadNodeResponse);
+    rpc CheckBlockVersion(BlockMappingCheckBlockVersionRequest) returns(BlockMappingCheckBlockVersionResponse);
+}
