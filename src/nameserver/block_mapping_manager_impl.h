@@ -6,13 +6,16 @@
 #ifndef  BFS_BLOCK_MAPPING_MANAGER_IMPL_H_
 #define  BFS_BLOCK_MAPPING_MANAGER_IMPL_H_
 
+#include <vector>
+
 #include <common/thread_pool.h>
 #include "proto/blockmapping.pb.h"
 
-#include "nameserver/block_mapping.h"
 
 namespace baidu {
 namespace bfs {
+
+class BlockMapping;
 
 class BlockMappingManagerImpl : public BlockMappingManager {
 public:
@@ -50,7 +53,25 @@ public:
                        const BlockMappingCheckBlockVersionRequest* request,
                        BlockMappingCheckBlockVersionResponse* response,
                        ::google::protobuf::Closure* done);
+    void PickRecoverBlocks(::google::protobuf::RpcController* controller,
+                       const BlockMappingPickRecoverBlocksRequest* request,
+                       BlockMappingPickRecoverBlocksResponse* response,
+                       ::google::protobuf::Closure* done);
+    void GetCloseBlocks(::google::protobuf::RpcController* controller,
+                       const BlockMappingGetCloseBlocksRequest* request,
+                       BlockMappingGetCloseBlocksResponse* response,
+                       ::google::protobuf::Closure* done);
+    void GetStat(::google::protobuf::RpcController* controller,
+                       const BlockMappingGetStatRequest* request,
+                       BlockMappingGetStatResponse* response,
+                       ::google::protobuf::Closure* done);
+    void ListRecover(::google::protobuf::RpcController* controller,
+                       const BlockMappingListRecoverRequest* request,
+                       BlockMappingListRecoverResponse* response,
+                       ::google::protobuf::Closure* done);
 private:
+    ThreadPool* thread_pool_;
+    std::vector<BlockMapping*> block_mapping_;
 };
 
 }

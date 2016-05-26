@@ -6,79 +6,166 @@ package baidu.bfs;
 option cc_generic_services = true;
 
 message BlockMappingGetLocatedBlockRequest {
-    optional int64 block_id = 1;
+    optional int64 sequence_id = 1;
+    optional int64 block_id = 2;
 }
 
 message BlockMappingGetLocatedBlockResponse {
-    optional StatusCode status = 1;
-    repeated int32 replica = 2;
-    optional int64 block_size = 3;
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
+    repeated int32 replica = 3;
+    optional int64 block_size = 4;
 }
 
 message BlockMappingChangeReplicaNumRequest {
-    optional int64 block_id = 1;
-    optional int32 replica_num = 2;
+    optional int64 sequence_id = 1;
+    optional int64 block_id = 2;
+    optional int32 replica_num = 3;
 }
 
 message BlockMappingChangeReplicaNumResponse {
-    optional StatusCode status = 1;
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
 }
 
 message BlockMappingAddNewBlockRequest {
-    optional int64 block_id = 1;
-    optional int32 replica = 2;
-    optional int64 block_version = 3;
-    optional int64 block_size = 4;
-    optional int32 init_replicas = 5;
+    optional int64 sequence_id = 1;
+    optional int64 block_id = 2;
+    optional int32 replica = 3;
+    optional int64 block_version = 4;
+    optional int64 block_size = 5;
+    repeated  int32 init_replicas = 6;
 }
 
 message BlockMappingAddNewBlockResponse {
-    optional StatusCode status = 1;
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
 }
 
 message BlockMappingUpdateBlockInfoRequest {
-    optional int64 block_id = 1;
-    optional int32 cs_id = 2;
-    optional int64 block_size = 3;
-    optional int64 block_version = 4;
+    optional int64 sequence_id = 1;
+    optional int64 block_id = 2;
+    optional int32 cs_id = 3;
+    optional int64 block_size = 4;
+    optional int64 block_version = 5;
 }
 
 message BlockMappingUpdateBlockInfoResponse {
-    optional StatusCode status = 1;
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
 }
 
 message BlockMappingRemoveBlocksForFileRequest {
-    optional FileInfo fileinfo = 1;
+    optional int64 sequence_id = 1;
+    optional FileInfo fileinfo = 2;
 }
 
 message BlockMappingRemoveBlocksForFileResponse {
-    optional StatusCode status = 1;
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
 }
 
 message BlockMappingRemoveBlockRequest {
-    optional int64 block_id = 1;
+    optional int64 sequence_id = 1;
+    optional int64 block_id = 2;
 }
 
 message BlockMappingRemoveBlockResponse {
-    optional StatusCode status = 1;
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
 }
 
 message BlockMappingDealWithDeadNodeRequest {
-    optional int32 cs_id = 1;
-    repeated int64 blocks = 2;
+    optional int64 sequence_id = 1;
+    optional int32 cs_id = 2;
+    repeated int64 blocks = 3;
 }
 
 message BlockMappingDealWithDeadNodeResponse {
-    optional StatusCode status = 1;
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
 }
 
 message BlockMappingCheckBlockVersionRequest {
-    optional int64 block_id = 1;
-    optional int64 block_version = 2;
+    optional int64 sequence_id = 1;
+    optional int64 block_id = 2;
+    optional int64 block_version = 3;
 }
 
 message BlockMappingCheckBlockVersionResponse {
-    optional StatusCode status = 1;
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
+}
+
+message BlockMappingPickRecoverBlocksRequest {
+    optional int64 sequence_id = 1;
+    optional int32 cs_id = 2;
+    optional int32 num = 3;
+}
+
+message RecoverBlockInfo {
+    optional int64 block_id = 1;
+    repeated int32 cs_id = 2;
+}
+
+message BlockMappingPickRecoverBlocksResponse {
+    optional int64 sequence_id = 1;
+    optional int32 hi_num = 2;
+    repeated RecoverBlockInfo block_info = 3;
+    optional StatusCode status = 4;
+}
+
+message BlockMappingProcessRecoveredBlockRequest {
+    optional int64 sequence_id = 1;
+    optional int32 cs_id = 2;
+    optional int64 block_id = 3;
+}
+
+message BlockMappingProcessRecoveredBlockResponse {
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
+}
+
+message BlockMappingGetCloseBlocksRequest {
+    optional int64 sequence_id = 1;
+    optional int32 cs_id = 2;
+}
+
+message BlockMappingGetCloseBlocksResponse {
+    optional int64 sequence_id = 1;
+    repeated int64 blocks = 2;
+    optional StatusCode status = 3;
+}
+
+message BlockMappingGetStatRequest {
+    optional int64 sequence_id = 1;
+    optional int32 cs_id = 2;
+}
+
+message BlockMappingGetStatResponse {
+    optional int64 sequence_id = 1;
+    optional int64 lo_recover_num = 2;
+    optional int64 hi_recover_num = 3;
+    optional int64 lo_pending = 4;
+    optional int64 hi_pending = 5;
+    optional int64 lost_num = 6;
+    optional int64 incomplete_num = 7;
+    optional StatusCode status = 8;
+}
+
+message BlockMappingListRecoverRequest {
+    optional int64 sequence_id = 1;
+}
+
+message BlockMappingListRecoverResponse {
+    optional int64 sequence_id = 1;
+    optional string hi_recover = 2;
+    optional string lo_recover = 3;
+    optional string lost = 4;
+    optional string hi_check = 5;
+    optional string lo_check = 6;
+    optional string incomplete = 7;
+    optional StatusCode status = 8;
 }
 
 service BlockMappingManager {
@@ -90,4 +177,8 @@ service BlockMappingManager {
     rpc RemoveBlock(BlockMappingRemoveBlockRequest) returns(BlockMappingRemoveBlockResponse);
     rpc DealWithDeadNode(BlockMappingDealWithDeadNodeRequest) returns(BlockMappingDealWithDeadNodeResponse);
     rpc CheckBlockVersion(BlockMappingCheckBlockVersionRequest) returns(BlockMappingCheckBlockVersionResponse);
+    rpc PickRecoverBlocks(BlockMappingPickRecoverBlocksRequest) returns(BlockMappingPickRecoverBlocksResponse);
+    rpc GetCloseBlocks(BlockMappingGetCloseBlocksRequest) returns(BlockMappingGetCloseBlocksResponse);
+    rpc GetStat(BlockMappingGetStatRequest) returns(BlockMappingGetStatResponse);
+    rpc ListRecover(BlockMappingListRecoverRequest) returns(BlockMappingListRecoverResponse);
 }
