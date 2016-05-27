@@ -7,6 +7,8 @@
 
 #include <common/thread_pool.h>
 #include "proto/nameserver.pb.h"
+#include "proto/blockmapping.pb.h"
+#include "rpc/rpc_client.h"
 
 namespace baidu {
 namespace bfs {
@@ -22,7 +24,7 @@ public:
         int64_t r_speed;
         int64_t recover_speed;
     };
-    ChunkServerManager(ThreadPool* thread_pool, BlockMapping* block_mapping);
+    ChunkServerManager(ThreadPool* thread_pool, BlockMappingManager_Stub* stub, RpcClient* client);
     void HandleRegister(const std::string& ip,
                         const RegisterRequest* request,
                         RegisterResponse* response);
@@ -56,7 +58,6 @@ private:
         std::vector<std::pair<int32_t,std::string> >* chains);
 private:
     ThreadPool* thread_pool_;
-    BlockMapping* block_mapping_;
     Mutex mu_;      /// chunkserver_s list mutext;
     Stats stats_;
     typedef std::map<int32_t, ChunkServerInfo*> ServerMap;
@@ -66,6 +67,8 @@ private:
     std::map<int32_t, std::set<int64_t> > chunkserver_block_map_;
     int32_t chunkserver_num_;
     int32_t next_chunkserver_id_;
+    BlockMappingManager_Stub* block_mapping_;
+    RpcClient* rpc_client_;
 
     std::string localhostname_;
     std::string localzone_;

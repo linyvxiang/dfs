@@ -11,6 +11,8 @@
 #include <common/thread_pool.h>
 
 #include "proto/nameserver.pb.h"
+#include "proto/blockmapping.pb.h"
+#include "rpc/rpc_client.h"
 
 namespace sofa {
 namespace pbrpc {
@@ -24,7 +26,6 @@ namespace bfs {
 
 class NameSpace;
 class ChunkServerManager;
-class BlockMapping;
 
 class NameServerImpl : public NameServer {
 public:
@@ -108,14 +109,14 @@ private:
     ThreadPool* report_thread_pool_;
     /// Chunkserver map
     ChunkServerManager* chunkserver_manager_;
-    /// Block map
-    BlockMapping* block_mapping_;
     /// Safemode
     volatile int safe_mode_;
     int64_t start_time_;
     /// Namespace
     NameSpace* namespace_;
     int64_t namespace_version_;
+    RpcClient* rpc_client_;
+    BlockMappingManager_Stub* block_mapping_;
 };
 
 } // namespace bfs

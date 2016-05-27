@@ -11,8 +11,10 @@
 #include <common/string_util.h>
 #include <common/util.h>
 #include "proto/status_code.pb.h"
-#include "nameserver/block_mapping.h"
+#include "proto/blockmapping.pb.h"
+#include "nameserver/block_mapping_manager_impl.h"
 #include "nameserver/location_provider.h"
+#include "rpc/rpc_client.h"
 
 DECLARE_int32(keepalive_timeout);
 DECLARE_int32(chunkserver_max_pending_buffers);
@@ -27,11 +29,12 @@ namespace bfs {
 
 const int kChunkserverLoadMax = -1;
 
-ChunkServerManager::ChunkServerManager(ThreadPool* thread_pool, BlockMapping* block_mapping)
+ChunkServerManager::ChunkServerManager(ThreadPool* thread_pool, BlockMappingManager_Stub* stub, RpcClient* rpc_client)
     : thread_pool_(thread_pool),
-      block_mapping_(block_mapping),
       chunkserver_num_(0),
-      next_chunkserver_id_(1) {
+      next_chunkserver_id_(1),
+      block_mapping_(stub),
+      rpc_client_(rpc_client) {
     memset(&stats_, 0, sizeof(stats_));
     thread_pool_->AddTask(boost::bind(&ChunkServerManager::DeadCheck, this));
     thread_pool_->AddTask(boost::bind(&ChunkServerManager::LogStats, this));
@@ -52,7 +55,18 @@ void ChunkServerManager::CleanChunkserver(ChunkServerInfo* cs, const std::string
     chunkserver_block_map_.erase(id);
     cs->set_status(kCsCleaning);
     mu_.Unlock();
-    block_mapping_->DealWithDeadNode(id, blocks);
+    BlockMappingDealWithDeadNodeRequest request;
+    BlockMappingDealWithDeadNodeResponse response;
+    request.set_sequence_id(0);
+    request.set_cs_id(id);
+    for (std::set<int64_t>::iterator it = blocks.begin(); it != blocks.end(); ++it) {
+        request.add_blocks(*it);
+    }
+    std::set<int64_t>().swap(blocks);
+    if (!rpc_client_->SendRequest(block_mapping_, &BlockMappingManager_Stub::DealWithDeadNode,
+                &request, &response, 15, 3) || response.status() != kOK) {
+        LOG(WARNING, "Deal with dead node %d fail", id);
+    }
     mu_.Lock("CleanChunkserverRelock", 10);
     cs->set_w_qps(0);
     cs->set_w_speed(0);
@@ -470,18 +484,48 @@ void ChunkServerManager::PickRecoverBlocks(int cs_id,
             return;
         }
     }
+    BlockMappingPickRecoverBlocksRequest request;
+    BlockMappingPickRecoverBlocksResponse response;
+    request.set_sequence_id(0);
+    request.set_cs_id(cs_id);
+    request.set_num(FLAGS_recover_speed);
+    if (!rpc_client_->SendRequest(block_mapping_, &BlockMappingManager_Stub::PickRecoverBlocks,
+                &request, &response, 15, 3) || response.status() != kOK) {
+        LOG(INFO, "Pick recover blocks for C%d fail", cs_id);
+        return;
+    }
+    //TODO ugly code, improve
     std::map<int64_t, std::set<int32_t> > blocks;
-    block_mapping_->PickRecoverBlocks(cs_id, FLAGS_recover_speed, &blocks, hi_num);
+    for (int i = 0; i < response.block_info_size(); i++) {
+        int64_t block_id = response.block_info(i).block_id();
+        for (int j = 0; j < response.block_info(i).cs_id_size(); j++) {
+            blocks[block_id].insert(response.block_info(i).cs_id(j));
+        }
+    }
+    std::vector<int64_t> process_block;
     for (std::map<int64_t, std::set<int32_t> >::iterator it = blocks.begin();
-         it != blocks.end(); ++it) {
+            it != blocks.end(); ++it) {
         MutexLock lock(&mu_);
         std::map<int64_t, std::vector<std::string> >::iterator recover_it =
             recover_blocks->insert(std::make_pair(it->first, std::vector<std::string>())).first;
         if (GetRecoverChains(it->second, &(recover_it->second))) {
             //
         } else {
-            block_mapping_->ProcessRecoveredBlock(cs_id, it->first);
+            process_block.push_back(it->first);
             recover_blocks->erase(recover_it);
+        }
+    }
+    if (process_block.size()) {
+        BlockMappingProcessRecoveredBlocksRequest process_request;
+        BlockMappingProcessRecoveredBlocksResponse process_response;
+        process_request.set_sequence_id(0);
+        process_request.set_cs_id(cs_id);
+        for (size_t i = 0; i < process_block.size(); i++) {
+            process_request.add_blocks(process_block[i]);
+        }
+        if (!rpc_client_->SendRequest(block_mapping_, &BlockMappingManager_Stub::ProcessRecoveredBlocks,
+                    &process_request, &process_response, 15, 3) || process_response.status() != kOK) {
+            LOG(WARNING, "Process recovered blocks fail");
         }
     }
 }

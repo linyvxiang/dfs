@@ -30,6 +30,7 @@ DEFINE_int32(nameserver_work_thread_num, 20, "Work threads num");
 DEFINE_bool(select_chunkserver_by_zone, false, "Select chunkserver by zone");
 DEFINE_double(select_chunkserver_local_factor, 0.1, "Weighting factors of locality");
 DEFINE_int32(block_mapping_bucket_num, 15, "Partation num of blockmapping");
+DEFINE_string(blockmapping_manager_address, "127.0.0.1:8828", "Address of blockampping manager");
 
 // chunkserver
 DEFINE_string(block_store_path, "./data", "Data path");

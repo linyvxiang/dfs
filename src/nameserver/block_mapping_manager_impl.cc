@@ -16,7 +16,7 @@ DECLARE_int32(block_mapping_bucket_num);
 namespace baidu {
 namespace bfs {
 
-BlockMappingManagerImpl::BlockMappingManagerImpl() {
+BlockMappingManagerImpl::BlockMappingManagerImpl() : max_block_id_(1) {
     thread_pool_ = new ThreadPool(FLAGS_block_mapping_bucket_num);
     block_mapping_.resize(FLAGS_block_mapping_bucket_num);
     for (size_t i = 0; i < block_mapping_.size(); i++) {
@@ -30,6 +30,22 @@ BlockMappingManagerImpl::~BlockMappingManagerImpl() {
         delete block_mapping_[i];
         block_mapping_[i] = NULL;
     }
+}
+
+void BlockMappingManagerImpl::GetNewBlockId(::google::protobuf::RpcController* controller,
+                       const BlockMappingGetNewBlockIdRequest* request,
+                       BlockMappingGetNewBlockIdResponse* response,
+                       ::google::protobuf::Closure* done) {
+    if (!response->has_sequence_id()) {
+        response->set_sequence_id(request->sequence_id());
+        boost::function<void ()> task = boost::bind(&BlockMappingManagerImpl::GetNewBlockId,
+                                            this, controller, request, response, done);
+        thread_pool_->AddTask(task);
+        return;
+    }
+    MutexLock lock(&mu_);
+    response->set_block_id(max_block_id_++);
+    done->Run();
 }
 
 void BlockMappingManagerImpl::GetLocatedBlock(::google::protobuf::RpcController* controller,
@@ -242,6 +258,24 @@ void BlockMappingManagerImpl::PickRecoverBlocks(::google::protobuf::RpcControlle
        }
     }
     response->set_status(kOK);
+    done->Run();
+}
+
+void BlockMappingManagerImpl::ProcessRecoveredBlocks(::google::protobuf::RpcController* controller,
+                   const BlockMappingProcessRecoveredBlocksRequest* request,
+                   BlockMappingProcessRecoveredBlocksResponse* response,
+                   ::google::protobuf::Closure* done) {
+    if (!response->has_sequence_id()) {
+        response->set_sequence_id(request->sequence_id());
+        boost::function<void ()> task = boost::bind(&BlockMappingManagerImpl::ProcessRecoveredBlocks,
+                this, controller, request, response, done);
+        thread_pool_->AddTask(task);
+        return;
+    }
+    for (int i = 0; i < request->blocks_size(); i++) {
+        int bucket_offset = request->blocks(i) % block_mapping_.size();
+        block_mapping_[bucket_offset]->ProcessRecoveredBlock(request->cs_id(), request->blocks(i));
+    }
     done->Run();
 }
 

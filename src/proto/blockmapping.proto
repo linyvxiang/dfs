@@ -5,6 +5,15 @@ package baidu.bfs;
 
 option cc_generic_services = true;
 
+message BlockMappingGetNewBlockIdRequest {
+    optional int64 sequence_id = 1;
+}
+
+message BlockMappingGetNewBlockIdResponse {
+    optional int64 sequence_id = 1;
+    optional int64 block_id = 2;
+}
+
 message BlockMappingGetLocatedBlockRequest {
     optional int64 sequence_id = 1;
     optional int64 block_id = 2;
@@ -34,7 +43,7 @@ message BlockMappingAddNewBlockRequest {
     optional int32 replica = 3;
     optional int64 block_version = 4;
     optional int64 block_size = 5;
-    repeated  int32 init_replicas = 6;
+    repeated int32 init_replicas = 6;
 }
 
 message BlockMappingAddNewBlockResponse {
@@ -115,13 +124,13 @@ message BlockMappingPickRecoverBlocksResponse {
     optional StatusCode status = 4;
 }
 
-message BlockMappingProcessRecoveredBlockRequest {
+message BlockMappingProcessRecoveredBlocksRequest {
     optional int64 sequence_id = 1;
     optional int32 cs_id = 2;
-    optional int64 block_id = 3;
+    repeated int64 blocks = 3;
 }
 
-message BlockMappingProcessRecoveredBlockResponse {
+message BlockMappingProcessRecoveredBlocksResponse {
     optional int64 sequence_id = 1;
     optional StatusCode status = 2;
 }
@@ -168,7 +177,18 @@ message BlockMappingListRecoverResponse {
     optional StatusCode status = 8;
 }
 
+message BlockMappingSetSafeModeRequest {
+    optional int64 sequence_id = 1;
+    optional bool safemode = 2;
+}
+
+message BlockMappingSetSafeModeResponse {
+    optional int64 sequence_id = 1;
+    optional StatusCode status = 2;
+}
+
 service BlockMappingManager {
+    rpc GetNewBlockId(BlockMappingGetNewBlockIdRequest) returns(BlockMappingGetNewBlockIdResponse);
     rpc GetLocatedBlock(BlockMappingGetLocatedBlockRequest) returns(BlockMappingGetLocatedBlockResponse);
     rpc ChangeReplicaNum(BlockMappingChangeReplicaNumRequest) returns(BlockMappingChangeReplicaNumResponse);
     rpc AddNewBlock(BlockMappingAddNewBlockRequest) returns(BlockMappingAddNewBlockResponse);
@@ -178,7 +198,9 @@ service BlockMappingManager {
     rpc DealWithDeadNode(BlockMappingDealWithDeadNodeRequest) returns(BlockMappingDealWithDeadNodeResponse);
     rpc CheckBlockVersion(BlockMappingCheckBlockVersionRequest) returns(BlockMappingCheckBlockVersionResponse);
     rpc PickRecoverBlocks(BlockMappingPickRecoverBlocksRequest) returns(BlockMappingPickRecoverBlocksResponse);
+    rpc ProcessRecoveredBlocks(BlockMappingProcessRecoveredBlocksRequest) returns(BlockMappingProcessRecoveredBlocksResponse);
     rpc GetCloseBlocks(BlockMappingGetCloseBlocksRequest) returns(BlockMappingGetCloseBlocksResponse);
     rpc GetStat(BlockMappingGetStatRequest) returns(BlockMappingGetStatResponse);
     rpc ListRecover(BlockMappingListRecoverRequest) returns(BlockMappingListRecoverResponse);
+    rpc SetSafeMode(BlockMappingSetSafeModeRequest) returns(BlockMappingSetSafeModeResponse);
 }

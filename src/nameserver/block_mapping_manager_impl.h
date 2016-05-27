@@ -9,7 +9,9 @@
 #include <vector>
 
 #include <common/thread_pool.h>
+#include <common/mutex.h>
 #include "proto/blockmapping.pb.h"
+#include "rpc/rpc_client.h"
 
 
 namespace baidu {
@@ -21,6 +23,10 @@ class BlockMappingManagerImpl : public BlockMappingManager {
 public:
     BlockMappingManagerImpl();
     ~BlockMappingManagerImpl();
+    void GetNewBlockId(::google::protobuf::RpcController* controller,
+                       const BlockMappingGetNewBlockIdRequest* request,
+                       BlockMappingGetNewBlockIdResponse* response,
+                       ::google::protobuf::Closure* done);
     void GetLocatedBlock(::google::protobuf::RpcController* controller,
                        const BlockMappingGetLocatedBlockRequest* request,
                        BlockMappingGetLocatedBlockResponse* response,
@@ -57,6 +63,10 @@ public:
                        const BlockMappingPickRecoverBlocksRequest* request,
                        BlockMappingPickRecoverBlocksResponse* response,
                        ::google::protobuf::Closure* done);
+    void ProcessRecoveredBlocks(::google::protobuf::RpcController* controller,
+                       const BlockMappingProcessRecoveredBlocksRequest* request,
+                       BlockMappingProcessRecoveredBlocksResponse* response,
+                       ::google::protobuf::Closure* done);
     void GetCloseBlocks(::google::protobuf::RpcController* controller,
                        const BlockMappingGetCloseBlocksRequest* request,
                        BlockMappingGetCloseBlocksResponse* response,
@@ -72,6 +82,8 @@ public:
 private:
     ThreadPool* thread_pool_;
     std::vector<BlockMapping*> block_mapping_;
+    Mutex mu_;
+    int64_t max_block_id_;
 };
 
 }

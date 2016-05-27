@@ -12,6 +12,7 @@
 
 #include "nameserver/nameserver_impl.h"
 #include "version.h"
+#include "nameserver/block_mapping_manager_impl.h"
 
 DECLARE_string(flagfile);
 DECLARE_string(nameserver_port);
@@ -56,6 +57,12 @@ int main(int argc, char* argv[])
     sofa::pbrpc::Servlet webservice =
         sofa::pbrpc::NewPermanentExtClosure(nameserver_service, &baidu::bfs::NameServerImpl::WebService);
     rpc_server.RegisterWebServlet("/dfs", webservice);
+
+    baidu::bfs::BlockMappingManagerImpl* block_mapping_service = new baidu::bfs::BlockMappingManagerImpl();
+
+    if (!rpc_server.RegisterService(block_mapping_service)) {
+        return EXIT_FAILURE;
+    }
 
     // Start
     std::string server_host = std::string("0.0.0.0:") + FLAGS_nameserver_port;
