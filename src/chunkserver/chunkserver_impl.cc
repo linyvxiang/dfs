@@ -509,8 +509,17 @@ void ChunkServerImpl::LocalWriteBlock(const WriteBlockRequest* request,
 
     // If complete, close block, and report only once(close block return true).
     int64_t report_start = write_end;
-    if (block->IsComplete() && block_manager_->CloseBlock(block)) {
-        LOG(INFO, "[WriteBlock] block finish #%ld size:%ld", block_id, block->Size());
+    if (block->IsComplete()) {
+        if (!request->async_close()) {
+            if (block_manager_->CloseBlock(block)) {
+                LOG(INFO, "[WriteBlock] block finish #%ld size:%ld", block_id, block->Size());
+            }
+        } else {
+            boost::function<void ()> task =
+                boost::bind(&BlockManager::CloseBlock, block_manager_, block);
+            write_thread_pool_->AddTask(task);
+            LOG(INFO, "[WriteBlock] async close block #%ld", block_id);
+        }
         report_start = common::timer::get_micros();
         ReportFinish(block);
     }

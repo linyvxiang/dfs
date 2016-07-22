@@ -494,7 +494,7 @@ StatusCode BlockMapping::CheckBlockVersion(int64_t block_id, int64_t version) {
         LOG(WARNING, "CheckBlockVersion can not find block: #%ld ", block_id);
         return kNsNotFound;
     }
-    if (block->version != version) {
+    if (block->version > 0 && block->version != version) {
         LOG(INFO, "CheckBlockVersion fail #%ld V%ld to V%ld",
             block_id, block->version, version);
         return kVersionError;

@@ -1,4 +1,3 @@
-// Copyright (c) 2016, Baidu.com, Inc. All Rights Reserved
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -481,6 +480,9 @@ void FileImpl::BackgroundWrite() {
             request->set_databuf(buffer->Data(), buffer->Size());
             request->set_offset(offset);
             request->set_is_last(buffer->IsLast());
+            if (buffer->IsLast()) {
+                request->set_async_close(w_options_.async_close);
+            }
             request->set_packet_seq(buffer->Sequence());
             //request->add_desc("start");
             //request->add_timestamp(common::timer::get_micros());
