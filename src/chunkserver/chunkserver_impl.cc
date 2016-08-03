@@ -248,6 +248,8 @@ void ChunkServerImpl::SendBlockReport() {
         }
     }
 
+    blockreport_task_id_ = work_thread_pool_->DelayTask(500,
+        boost::bind(&ChunkServerImpl::SendBlockReport, this));
     BlockReportResponse response;
     if (!nameserver_->SendRequest(&NameServer_Stub::BlockReport, &request, &response, 20)) {
         LOG(WARNING, "Block reprot fail\n");
@@ -290,8 +292,8 @@ void ChunkServerImpl::SendBlockReport() {
             write_thread_pool_->AddTask(close_block_task);
         }
     }
-    blockreport_task_id_ = work_thread_pool_->DelayTask(FLAGS_blockreport_interval* 1000,
-        boost::bind(&ChunkServerImpl::SendBlockReport, this));
+    //blockreport_task_id_ = work_thread_pool_->DelayTask(FLAGS_blockreport_interval* 1000,
+     //   boost::bind(&ChunkServerImpl::SendBlockReport, this));
 }
 
 bool ChunkServerImpl::ReportFinish(Block* block) {
