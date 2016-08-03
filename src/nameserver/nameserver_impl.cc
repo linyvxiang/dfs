@@ -300,7 +300,7 @@ void NameServerImpl::BlockReport(::google::protobuf::RpcController* controller,
     if (end_report - start_report > 100 * 1000) {
         LOG(WARNING, "C%d report use %d micors, update use %d micors, add block use %d micors, wait %d micros",
                 cs_id, end_report - start_report,
-                after_update - before_udpate, add_time, start_report - response->sequence_id());
+                after_update - before_update, add_time, start_report - response->sequence_id());
     }
     response->set_status(kOK);
     done->Run();
