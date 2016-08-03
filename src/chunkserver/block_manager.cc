@@ -123,7 +123,7 @@ const std::string& BlockManager::GetStorePath(int64_t block_id) {
 bool BlockManager::LoadStorage() {
     MutexLock lock(&mu_);
     int64_t start_load_time = common::timer::get_micros();
-    int32_t offset = start_load_time % 400;
+    int32_t offset = start_load_time % 101;
     leveldb::Options options;
     options.create_if_missing = true;
     leveldb::Status s = leveldb::DB::Open(options, store_path_list_[0] + "meta/", &metadb_);
@@ -149,7 +149,7 @@ bool BlockManager::LoadStorage() {
             delete it;
             return false;
         }
-        if (block_id % 400 != offset) {
+        if (block_id % 101 != offset) {
             continue;
         }
         BlockMeta meta;
@@ -247,7 +247,7 @@ bool BlockManager::SetNameSpaceVersion(int64_t version) {
 
 bool BlockManager::ListBlocks(std::vector<BlockMeta>* blocks, int64_t offset, int32_t num) {
     leveldb::Iterator* it = metadb_->NewIterator(leveldb::ReadOptions());
-    for (it->Seek(BlockId2Str(offset)); it->Valid() && offset < 1000000; it->Next()) {
+    for (it->Seek(BlockId2Str(offset)); it->Valid(); it->Next()) {
         int64_t block_id = 0;
         if (1 != sscanf(it->key().data(), "%ld", &block_id)) {
             LOG(WARNING, "[ListBlocks] Unknown meta key: %s\n",

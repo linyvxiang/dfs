@@ -19,8 +19,6 @@ LDFLAGS = -L$(PBRPC_PATH)/lib -lsofa-pbrpc \
           -L$(LEVELDB_PATH)/lib -lleveldb \
           -L$(SNAPPY_PATH)/lib -lsnappy \
           -L$(GFLAG_PATH)/lib -lgflags \
-          -L$(GTEST_PATH)/lib -lgtest \
-          -L$(TCMALLOC_PATH)/lib -ltcmalloc_minimal \
           -L$(COMMON_PATH)/lib -lcommon -lpthread -lz -lrt
 
 CXXFLAGS = -Wall -fPIC $(OPT)
