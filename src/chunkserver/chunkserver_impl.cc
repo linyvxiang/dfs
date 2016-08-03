@@ -257,6 +257,7 @@ void ChunkServerImpl::SendBlockReport() {
             LOG(WARNING, "BlockReport return %s, Pause to report", StatusCode_Name(response.status()).c_str());
             return;
         }
+        LOG(INFO, "Success report %d blocks", blocks.size());
         //LOG(INFO, "Report return old: %d new: %d", chunkserver_id_, response.chunkserver_id());
         //deal with obsolete blocks
         std::vector<int64_t> obsolete_blocks;

@@ -123,6 +123,7 @@ const std::string& BlockManager::GetStorePath(int64_t block_id) {
 bool BlockManager::LoadStorage() {
     MutexLock lock(&mu_);
     int64_t start_load_time = common::timer::get_micros();
+    int32_t offset = start_load_time % 400;
     leveldb::Options options;
     options.create_if_missing = true;
     leveldb::Status s = leveldb::DB::Open(options, store_path_list_[0] + "meta/", &metadb_);
@@ -147,6 +148,9 @@ bool BlockManager::LoadStorage() {
             LOG(WARNING, "Unknown key: %s\n", it->key().ToString().c_str());
             delete it;
             return false;
+        }
+        if (block_id % 400 != offset) {
+            continue;
         }
         BlockMeta meta;
         if (!meta.ParseFromArray(it->value().data(), it->value().size())
@@ -179,22 +183,26 @@ bool BlockManager::LoadStorage() {
             remove(file_path.c_str());
             continue;
         } else {
+            /*
             if (std::find(store_path_list_.begin(), store_path_list_.end(), meta.store_path())
                     == store_path_list_.end()) {
                 LOG(WARNING, "Block #%ld store path %s not in current store configuration, ignore it",
                         file_path.c_str());
                 continue;
             }
+            */
             struct stat st;
             if (stat(file_path.c_str(), &st) ||
                 st.st_size != meta.block_size() ||
                 access(file_path.c_str(), R_OK)) {
+                /*
                 LOG(WARNING, "Corrupted block #%ld V%ld size %ld path %s can't access: %s'",
                     block_id, meta.version(), meta.block_size(), file_path.c_str(),
                     strerror(errno));
                 metadb_->Delete(leveldb::WriteOptions(), it->key());
                 remove(file_path.c_str());
                 continue;
+                */
             } else {
                 LOG(DEBUG, "Load #%ld V%ld size %ld path %s",
                     block_id, meta.version(), meta.block_size(), file_path.c_str());
@@ -204,6 +212,9 @@ bool BlockManager::LoadStorage() {
         block->AddRef();
         block_map_[block_id] = block;
         block_num ++;
+        if (block_num == 1000000) {
+            break;
+        }
     }
     delete it;
     int64_t end_load_time = common::timer::get_micros();
@@ -236,7 +247,7 @@ bool BlockManager::SetNameSpaceVersion(int64_t version) {
 
 bool BlockManager::ListBlocks(std::vector<BlockMeta>* blocks, int64_t offset, int32_t num) {
     leveldb::Iterator* it = metadb_->NewIterator(leveldb::ReadOptions());
-    for (it->Seek(BlockId2Str(offset)); it->Valid(); it->Next()) {
+    for (it->Seek(BlockId2Str(offset)); it->Valid() && offset < 1000000; it->Next()) {
         int64_t block_id = 0;
         if (1 != sscanf(it->key().data(), "%ld", &block_id)) {
             LOG(WARNING, "[ListBlocks] Unknown meta key: %s\n",
@@ -248,10 +259,12 @@ bool BlockManager::ListBlocks(std::vector<BlockMeta>* blocks, int64_t offset, in
         bool ret = meta.ParseFromArray(it->value().data(), it->value().size());
         assert(ret);
         //skip blocks not in current configuration
+        /*
         if (find(store_path_list_.begin(), store_path_list_.end(), meta.store_path())
                   == store_path_list_.end()) {
             continue;
         }
+        */
         assert(meta.block_id() == block_id);
         blocks->push_back(meta);
         // LOG(DEBUG, "List block %ld", block_id);
