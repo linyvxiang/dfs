@@ -241,7 +241,7 @@ bool BlockMapping::UpdateNormalBlock(NSBlock* nsblock,
         }
     }
 
-    if (replica.insert(cs_id).second) {
+    if (replica.size() < 3 && replica.insert(cs_id).second) {
         LOG(INFO, "New replica C%d V%ld %ld for #%ld R%lu",
             cs_id, block_version, block_size, block_id, replica.size());
     }
