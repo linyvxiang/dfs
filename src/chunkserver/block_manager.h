@@ -58,6 +58,7 @@ private:
     Mutex   mu_;
     int64_t namespace_version_;
     int64_t disk_quota_;
+    int64_t offset_;
 };
 
 } // bfs

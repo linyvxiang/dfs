@@ -123,7 +123,7 @@ const std::string& BlockManager::GetStorePath(int64_t block_id) {
 bool BlockManager::LoadStorage() {
     MutexLock lock(&mu_);
     int64_t start_load_time = common::timer::get_micros();
-    int32_t offset = start_load_time % 101;
+    offset_ = start_load_time % 101;
     leveldb::Options options;
     options.create_if_missing = true;
     leveldb::Status s = leveldb::DB::Open(options, store_path_list_[0] + "meta/", &metadb_);
@@ -149,7 +149,7 @@ bool BlockManager::LoadStorage() {
             delete it;
             return false;
         }
-        if (block_id % 101 != offset) {
+        if (block_id % 101 != offset_) {
             continue;
         }
         BlockMeta meta;
@@ -266,6 +266,9 @@ bool BlockManager::ListBlocks(std::vector<BlockMeta>* blocks, int64_t offset, in
         }
         */
         assert(meta.block_id() == block_id);
+        if (block_id % 101 != offset_) {
+            continue;
+        }
         blocks->push_back(meta);
         // LOG(DEBUG, "List block %ld", block_id);
         if (--num <= 0) {
