@@ -248,7 +248,7 @@ void ChunkServerImpl::SendBlockReport() {
         }
     }
 
-    blockreport_task_id_ = work_thread_pool_->DelayTask(500,
+    blockreport_task_id_ = work_thread_pool_->DelayTask(200,
         boost::bind(&ChunkServerImpl::SendBlockReport, this));
     BlockReportResponse response;
     if (!nameserver_->SendRequest(&NameServer_Stub::BlockReport, &request, &response, 20)) {

@@ -70,6 +70,7 @@ public:
     void AddRef();
     void DecRef();
     int GetRef();
+    BlockMeta get_meta();
 private:
     /// Open corresponding file for write.
     bool OpenForWrite();

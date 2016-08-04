@@ -246,36 +246,49 @@ bool BlockManager::SetNameSpaceVersion(int64_t version) {
 }
 
 bool BlockManager::ListBlocks(std::vector<BlockMeta>* blocks, int64_t offset, int32_t num) {
-    leveldb::Iterator* it = metadb_->NewIterator(leveldb::ReadOptions());
-    for (it->Seek(BlockId2Str(offset)); it->Valid(); it->Next()) {
-        int64_t block_id = 0;
-        if (1 != sscanf(it->key().data(), "%ld", &block_id)) {
-            LOG(WARNING, "[ListBlocks] Unknown meta key: %s\n",
-                it->key().ToString().c_str());
-            delete it;
-            return false;
-        }
-        BlockMeta meta;
-        bool ret = meta.ParseFromArray(it->value().data(), it->value().size());
-        assert(ret);
-        //skip blocks not in current configuration
-        /*
-        if (find(store_path_list_.begin(), store_path_list_.end(), meta.store_path())
-                  == store_path_list_.end()) {
-            continue;
-        }
-        */
-        assert(meta.block_id() == block_id);
-        if (block_id % 101 != offset_) {
-            continue;
-        }
+    /* leveldb::Iterator* it = metadb_->NewIterator(leveldb::ReadOptions()); */
+    /* for (it->Seek(BlockId2Str(offset)); it->Valid(); it->Next()) { */
+    /*     int64_t block_id = 0; */
+    /*     if (1 != sscanf(it->key().data(), "%ld", &block_id)) { */
+    /*         LOG(WARNING, "[ListBlocks] Unknown meta key: %s\n", */
+    /*             it->key().ToString().c_str()); */
+    /*         delete it; */
+    /*         return false; */
+    /*     } */
+    /*     BlockMeta meta; */
+    /*     bool ret = meta.ParseFromArray(it->value().data(), it->value().size()); */
+    /*     assert(ret); */
+    /*     //skip blocks not in current configuration */
+    /*     /* */
+    /*     if (find(store_path_list_.begin(), store_path_list_.end(), meta.store_path()) */
+    /*               == store_path_list_.end()) { */
+    /*         continue; */
+    /*     } */
+    /*     *1/ */
+    /*     assert(meta.block_id() == block_id); */
+    /*     if (block_id % 101 != offset_) { */
+    /*         continue; */
+    /*     } */
+    /*     blocks->push_back(meta); */
+    /*     // LOG(DEBUG, "List block %ld", block_id); */
+    /*     if (--num <= 0) { */
+    /*         break; */
+    /*     } */
+    /* } */
+    /* delete it; */
+    BlockMap::iterator it;
+    if (offset == -1) {
+        it = block_map_.begin();
+    } else {
+        it = block_map_.find(offset);
+    }
+    while (it != block_map_.end()) {
+        BlockMeta meta = it->second->get_meta();
         blocks->push_back(meta);
-        // LOG(DEBUG, "List block %ld", block_id);
         if (--num <= 0) {
             break;
         }
     }
-    delete it;
     return true;
 }
 

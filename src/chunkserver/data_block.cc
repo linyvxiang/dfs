@@ -419,6 +419,9 @@ StatusCode Block::Append(int32_t seq, const char* buf, int64_t len) {
     last_seq_ = seq;
     return kOK;
 }
+BlockMeta Block::get_meta() {
+    return meta_;
+}
 
 } // namespace bfs
 } // namespace baidu
