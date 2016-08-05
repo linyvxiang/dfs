@@ -280,11 +280,12 @@ bool BlockManager::ListBlocks(std::vector<BlockMeta>* blocks, int64_t offset, in
     if (offset == -1) {
         it = block_map_.begin();
     } else {
-        it = block_map_.find(offset);
+        it = block_map_.lower_bound(offset);
     }
     while (it != block_map_.end()) {
         BlockMeta meta = it->second->get_meta();
         blocks->push_back(meta);
+        ++it;
         if (--num <= 0) {
             break;
         }
@@ -451,6 +452,12 @@ bool BlockManager::RemoveAllBlocksAsync() {
     }
     delete it;
     return true;
+}
+
+int64_t BlockManager::first_block_id() {
+
+    int64_t id = (block_map_.begin())->first;
+    return id;
 }
 
 }

@@ -46,6 +46,7 @@ public:
     bool RemoveBlock(int64_t block_id);
     bool RemoveAllBlocksAsync();
     bool RemoveAllBlocks();
+    int64_t first_block_id();
 private:
     bool RemoveBlockMeta(int64_t block_id);
 private:

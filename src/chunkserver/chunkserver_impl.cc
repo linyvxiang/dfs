@@ -93,6 +93,7 @@ ChunkServerImpl::ChunkServerImpl()
     counter_manager_ = new CounterManager;
     heartbeat_thread_->AddTask(boost::bind(&ChunkServerImpl::LogStatus, this, true));
     heartbeat_thread_->AddTask(boost::bind(&ChunkServerImpl::Register, this));
+    last_report_blockid_ = block_manager_->first_block_id() - 1;
 }
 
 ChunkServerImpl::~ChunkServerImpl() {
@@ -241,7 +242,7 @@ void ChunkServerImpl::SendBlockReport() {
     }
 
     if (blocks_num < FLAGS_blockreport_size) {
-        last_report_blockid_ = -1;
+        last_report_blockid_ = block_manager_->first_block_id() - 1;
     } else {
         if (blocks_num) {
             last_report_blockid_ = blocks[blocks_num - 1].block_id();
@@ -255,7 +256,7 @@ void ChunkServerImpl::SendBlockReport() {
         LOG(WARNING, "Block reprot fail\n");
     } else {
         if (response.status() != kOK) {
-            last_report_blockid_ = -1;
+            last_report_blockid_ = block_manager_->first_block_id();
             LOG(WARNING, "BlockReport return %s, Pause to report", StatusCode_Name(response.status()).c_str());
             return;
         }
