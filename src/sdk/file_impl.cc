@@ -779,7 +779,7 @@ int32_t FileImpl::Close() {
             if (finished_num == replica_num) {
                 break;
             }
-            if (finished_num == replica_num - 1 && wait_time >= 5) {
+            if (replica_num > 1 && finished_num == replica_num - 1 && wait_time >= 5) {
                 LOG(WARNING, "Skip slow chunkserver");
                 bg_error_ = true;
                 break;
