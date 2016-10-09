@@ -798,7 +798,8 @@ int32_t FileImpl::Close() {
     LOG(DEBUG, "File %s closed", name_.c_str());
     closed_ = true;
     int32_t ret = OK;
-    if (bg_error_ && finished_num < replica_num - 1) {
+    if (bg_error_ && ((FLAGS_sdk_write_mode == "fan-out" && finished_num < replica_num - 1
+                    || FLAGS_sdk_write_mode == "chains" && finished_num == 0))) {
         LOG(WARNING, "Close file %s fail", name_.c_str());
         ret = TIMEOUT;
     }
