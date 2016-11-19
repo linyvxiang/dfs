@@ -56,6 +56,7 @@ FUSE_HEADER = $(wildcard fuse/*.h)
 
 CLIENT_OBJ = $(patsubst %.cc, %.o, $(wildcard src/client/*.cc))
 MARK_OBJ = $(patsubst %.cc, %.o, $(wildcard src/test/*.cc))
+GENERATE_RANDOM_STRING_OBJ = generate_random_string.o
 
 FLAGS_OBJ = src/flags.o
 VERSION_OBJ = src/version.o
@@ -143,6 +144,9 @@ bfs_client: $(CLIENT_OBJ) $(LIBS)
 
 mark: $(MARK_OBJ) $(LIBS)
 	$(CXX) $(MARK_OBJ) $(LIBS) -o $@ $(LDFLAGS)
+
+generate_random_string: $(GENERATE_RANDOM_STRING_OBJ) $(LIBS)
+	$(CXX) $(GENERATE_RANDOM_STRING_OBJ) $(LIBS) -o $@ $(LDFLAGS)
 
 logdb_dump: src/nameserver/logdb.o src/utils/logdb_dump.o
 	$(CXX) src/nameserver/logdb.o src/utils/logdb_dump.o $(OBJS) -o $@ $(LDFLAGS)
