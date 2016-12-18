@@ -36,3 +36,5 @@
 - 对于Rename操作，只需要改动其key即可。比如想要把`/home/diry/filey`文件移动到`home/dirx`目录中，按照之前的规则，`/home/diry/filey`在leveldb中存储的key为`5filey`，`/home/dirx`的`EntryID`为4，把`5filey`这条记录中的内存读取出来，以`4filey`为key，再次存储到leveldbk ，然后将`5filey`这条记录删除，即完成了Rename操作
 
 这样，一个目录树所需要的基本操作便已经支持，由于leveldb引擎本身写入速度较快，并且在读取时，内部本身已经有cache来缓存住较热的kv数据，并且缓存大小可配置，所以一个非常简洁高效的目录树便实现了~
+
+想要了解 BFS实现中的其它 细节 ，请关注https://github.com/baidu/bfs
